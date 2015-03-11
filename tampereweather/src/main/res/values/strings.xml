@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">TampereWeather</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="tampere_saa_text">TAMPERE SÄÄ</string>
+    <string name="temperature_text">Lämpötila: N/A</string>
+    <string name="wind_text">Tuulen nopeus: N/A</string>
+    <string name="weather_text">Sää: N/A</string>
+    <string name="refresh_button_text">New Button</string>
+</resources>
