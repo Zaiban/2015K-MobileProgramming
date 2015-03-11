@@ -9,7 +9,7 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/week10" />
+            <option value="$PROJECT_DIR$/tampereweather" />
           </set>
         </option>
       </GradleProjectSettings>
