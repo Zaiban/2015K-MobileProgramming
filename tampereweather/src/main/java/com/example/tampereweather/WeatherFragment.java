@@ -14,6 +14,9 @@ import android.view.View.OnClickListener;
 
 import com.example.tampereweather.R;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,6 +27,7 @@ import java.net.URL;
 
 public class WeatherFragment extends Fragment {
     private Button refreshButton;
+    private View mainView;
 
     public WeatherFragment() {
     }
@@ -58,6 +62,8 @@ public class WeatherFragment extends Fragment {
 
         // 2.
 
+        mainView = view;
+
         TextView windText = (TextView) view.findViewById(R.id.windTextView);
         windText.setText("Wind 500m/s");
 
@@ -67,7 +73,7 @@ public class WeatherFragment extends Fragment {
 
 
 
-    public void doWebRequest() {
+    public String doWebRequest() {
         // These two need to be declared outside the try/catch
         // so that they can be closed in the finally block.
         HttpURLConnection urlConnection = null;
@@ -93,7 +99,7 @@ public class WeatherFragment extends Fragment {
             StringBuffer buffer = new StringBuffer();
             if (inputStream == null) {
                 // Nothing to do.
-                return;
+                return forecastJsonStr;
             }
             reader = new BufferedReader(new InputStreamReader(inputStream));
 
@@ -102,20 +108,22 @@ public class WeatherFragment extends Fragment {
                 // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
                 // But it does make debugging a *lot* easier if you print out the completed
                 // buffer for debugging.
+
                 buffer.append(line + "\n");
+                Log.w("TampereWeather", "line: " + line);
             }
 
             if (buffer.length() == 0) {
                 // Stream was empty.  No point in parsing.
-                return;
+                return forecastJsonStr;
             }
             forecastJsonStr = buffer.toString();
-            Log.w("TampereWeather", forecastJsonStr);
+            Log.w("TampereWeather","forecastJsonStr" + forecastJsonStr);
         } catch (IOException e) {
             Log.e("PlaceholderFragment", "Error ", e);
             // If the code didn't successfully get the weather data, there's no point in attemping
             // to parse it.
-            return;
+            return forecastJsonStr;
         } finally{
             if (urlConnection != null) {
                 urlConnection.disconnect();
@@ -128,19 +136,45 @@ public class WeatherFragment extends Fragment {
                 }
             }
         }
-
-        return;
+        Log.w("TampereWeather", "task: success: ");
+        return forecastJsonStr;
     }
 
-    private class WebTask extends AsyncTask {
+    private class WebTask extends AsyncTask<Object, Void, String> {
         /** The system calls this to perform work in a worker thread and
          * delivers it the parameters given to AsyncTask.execute() */
         @Override
-        protected Object doInBackground(Object[] params) {
-            doWebRequest();
-            return null;
+        protected String doInBackground(Object[] params) {
+            return doWebRequest();
+        }
+        protected void onPostExecute(String jsonResponse){
+            parseWeatherDataFromJsonResponse(jsonResponse);
+
         }
 
+    }
+    private void parseWeatherDataFromJsonResponse(String jsonResponse){
+        JSONObject currentWeatherJSON = null;
+        try {
+            currentWeatherJSON = new JSONObject(jsonResponse);
 
+            // Update wind speed to view
+            JSONObject windJSON = currentWeatherJSON.getJSONObject("wind");
+            String windSpeed = windJSON.getString("speed");
+            TextView windTextView = (TextView) mainView.findViewById(R.id.windTextView);
+            windTextView.setText("Wind speed: " + windSpeed + "m/s");
+
+            // Update temperature to view
+            Double temperature = currentWeatherJSON.getJSONObject("main").getDouble("temp");
+            TextView tempTextView = (TextView) mainView.findViewById(R.id.temperatureTextView);
+            tempTextView.setText("Temperature: " + temperature + " Kelvin");
+
+            // Update weather to view
+            String weather = currentWeatherJSON.getJSONObject("weather").getString("main");
+            TextView weatherTextView = (TextView) mainView.findViewById(R.id.weatherTextView);
+            weatherTextView.setText("Weather: " + weather);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 }
