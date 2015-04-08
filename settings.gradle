@@ -1,1 +1,1 @@
-include ':tampereweather'
+include ':tampereweather', 'tw_teacher'

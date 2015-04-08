@@ -10,6 +10,7 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/tampereweather" />
+            <option value="$PROJECT_DIR$/tw_teacher" />
           </set>
         </option>
       </GradleProjectSettings>
