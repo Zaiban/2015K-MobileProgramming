@@ -36,19 +36,26 @@ import java.util.List;
 
 public class WeatherActivity extends ActionBarActivity {
 
+    public static ArrayAdapter<String> forecastArrayAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_weather);
-        if (savedInstanceState == null) {
+        if (savedInstanceState == null) {// Ei palautettavaa dataa
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.container, new PlaceholderFragment())
                     .commit();
-            ArrayList<String> forecastStrings = new ArrayList<String>();
-            PlaceholderFragment.forecastArrayAdapter =
-                    new ArrayAdapter<String>( this, R.layout.forecast_list_item_layout, R.id.forecastTextView, forecastStrings);
         }
-
+        else{ // savedInstaneState != null
+            // Haetaan dataa..
+            ArrayList<String> forecasts = savedInstanceState.getStringArrayList("FORECAST_STRING");
+            // Luodaan array adapter listan pohjalta
+            forecastArrayAdapter = new ArrayAdapter<String>(this, R.layout.forecast_list_item_layout, R.id.forecastTextView, forecasts);
+        }
+        if( forecastArrayAdapter == null ){
+            forecastArrayAdapter = new ArrayAdapter<String>( this, R.layout.forecast_list_item_layout, R.id.forecastTextView, new ArrayList<String>());
+        }
         
     }
 
@@ -60,8 +67,8 @@ public class WeatherActivity extends ActionBarActivity {
     public void onSaveInstanceState( Bundle savedInstanceState ){
         // Talleta aktiviteetin tiedot tässä (list array adapterin string -taulukko)
         ArrayList<String> forecastStrings = new ArrayList<String>();
-        for( int i=0; i<PlaceholderFragment.forecastArrayAdapter.getCount(); i++ ){
-            forecastStrings.add( PlaceholderFragment.forecastArrayAdapter.getItem( i ));
+        for( int i=0; i<forecastArrayAdapter.getCount(); i++ ){
+            forecastStrings.add(forecastArrayAdapter.getItem(i));
         }
         // Talletetaan forecastStrings bundleen
         savedInstanceState.putStringArrayList("FORECAST_STRING", forecastStrings);
@@ -70,9 +77,9 @@ public class WeatherActivity extends ActionBarActivity {
 
     public void onRestoreInstanceState( Bundle savedInstanceState ){
         ArrayList<String> forecastStrings = savedInstanceState.getStringArrayList("FORECAST_STRING");
-        PlaceholderFragment.forecastArrayAdapter =
+        forecastArrayAdapter =
                 new ArrayAdapter<String>( this, R.layout.forecast_list_item_layout, R.id.forecastTextView, forecastStrings);
-
+        super.onSaveInstanceState(savedInstanceState);
     }
 
     @Override
@@ -105,8 +112,6 @@ public class WeatherActivity extends ActionBarActivity {
      * A placeholder fragment containing a simple view.
      */
     public static class PlaceholderFragment extends Fragment {
-
-        public static ArrayAdapter<String> forecastArrayAdapter;
 
         public PlaceholderFragment() {
         }
@@ -220,7 +225,7 @@ public class WeatherActivity extends ActionBarActivity {
         JSONObject weatherForecastJSON = null;
         try {
             // Tyhjennetään ArrayAdapter (näytöllä oleva lista)
-            PlaceholderFragment.forecastArrayAdapter.clear();
+            forecastArrayAdapter.clear();
             weatherForecastJSON = new JSONObject( jsonResponse );
             JSONArray forecastArray = weatherForecastJSON.getJSONArray("list");
             for( int i=0; i<forecastArray.length(); i++ ){
@@ -229,7 +234,7 @@ public class WeatherActivity extends ActionBarActivity {
                 for( int j=0; j<weatherArray.length(); j++ ){
                     String description = weatherArray.getJSONObject(j).getString("description");
                     // Lisätään description adapteriin
-                    PlaceholderFragment.forecastArrayAdapter.add( description );
+                    forecastArrayAdapter.add( description );
                 }
             }
 
